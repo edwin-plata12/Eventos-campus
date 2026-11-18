@@ -1,0 +1,4 @@
+{ "indexes": [
+  { "collectionGroup": "eventos", "queryScope": "COLLECTION", "fields": [{ "fieldPath": "publicado", "order": "ASCENDING" }, { "fieldPath": "inicia", "order": "ASCENDING" }] },
+  { "collectionGroup": "inscripciones", "queryScope": "COLLECTION", "fields": [{ "fieldPath": "estado", "order": "ASCENDING" }, { "fieldPath": "creadaEn", "order": "ASCENDING" }] }
+], "fieldOverrides": [] }
