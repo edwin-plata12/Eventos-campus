@@ -1,0 +1,23 @@
+meta {
+  name: Eventos crear - 400 fechas invertidas
+  type: http
+  seq: 9
+}
+
+post {
+  url: {{baseUrl}}/api/eventos
+  body: json
+  auth: none
+}
+
+headers {
+  Authorization: Bearer {{idToken}}
+}
+
+body:json {
+  { "titulo": "Evento inválido", "descripcion": "x", "lugar": "Aula", "categoria": "Cultural", "cupo": 3, "inicia": "2027-03-10T18:00:00.000Z", "termina": "2027-03-10T15:00:00.000Z" }
+}
+
+assert {
+  res.status: eq 400
+}

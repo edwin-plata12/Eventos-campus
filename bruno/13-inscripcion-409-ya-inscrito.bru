@@ -1,0 +1,19 @@
+meta {
+  name: Inscripcion - 409 ya inscrito
+  type: http
+  seq: 13
+}
+
+post {
+  url: {{baseUrl}}/api/eventos/{{nuevoSlug}}/inscripcion
+  body: none
+  auth: none
+}
+
+headers {
+  Authorization: Bearer {{idTokenEstudiante}}
+}
+
+assert {
+  res.status: eq 409
+}

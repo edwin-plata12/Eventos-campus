@@ -1,0 +1,19 @@
+meta {
+  name: Cancelar inscripcion - 204
+  type: http
+  seq: 20
+}
+
+delete {
+  url: {{baseUrl}}/api/eventos/{{nuevoSlug}}/inscripcion
+  body: none
+  auth: none
+}
+
+headers {
+  Authorization: Bearer {{idTokenEstudiante}}
+}
+
+assert {
+  res.status: eq 204
+}

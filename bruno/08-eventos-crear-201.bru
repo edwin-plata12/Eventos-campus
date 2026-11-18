@@ -1,0 +1,27 @@
+meta {
+  name: Eventos crear - 201
+  type: http
+  seq: 8
+}
+
+post {
+  url: {{baseUrl}}/api/eventos
+  body: json
+  auth: none
+}
+
+headers {
+  Authorization: Bearer {{idToken}}
+}
+
+body:json {
+  { "titulo": "Torneo de ajedrez", "descripcion": "Prueba de la API", "lugar": "Biblioteca", "categoria": "Deportivo", "cupo": 3, "inicia": "2027-03-10T15:00:00.000Z", "termina": "2027-03-10T18:00:00.000Z" }
+}
+
+assert {
+  res.status: eq 201
+}
+
+script:post-response {
+  bru.setVar("nuevoSlug", res.body.slug);
+}

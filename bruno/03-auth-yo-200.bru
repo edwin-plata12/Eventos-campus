@@ -1,0 +1,19 @@
+meta {
+  name: Auth yo - 200
+  type: http
+  seq: 3
+}
+
+get {
+  url: {{baseUrl}}/api/auth/yo
+  body: none
+  auth: none
+}
+
+headers {
+  Authorization: Bearer {{idToken}}
+}
+
+assert {
+  res.status: eq 200
+}

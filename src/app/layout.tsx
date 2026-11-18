@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 import "./globals.css";
 import SesionNav from "@/components/SesionNav";
 
@@ -16,9 +17,9 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           <strong>Eventos del campus</strong>
           <nav aria-label="Principal">
             <ul>
-              <li><a href="/">Cartelera</a></li>
-              <li><a href="/mis-eventos">Mis eventos</a></li>
-              <li><a href="/organizador">Organizador</a></li>
+              <li><Link href="/">Cartelera</Link></li>
+              <li><Link href="/mis-eventos">Mis eventos</Link></li>
+              <li><Link href="/organizador">Organizador</Link></li>
               <SesionNav />
             </ul>
           </nav>

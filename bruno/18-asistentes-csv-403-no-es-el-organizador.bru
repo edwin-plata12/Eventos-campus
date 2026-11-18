@@ -1,0 +1,19 @@
+meta {
+  name: Asistentes csv - 403 no es el organizador
+  type: http
+  seq: 18
+}
+
+get {
+  url: {{baseUrl}}/api/eventos/{{nuevoSlug}}/asistentes.csv
+  body: none
+  auth: none
+}
+
+headers {
+  Authorization: Bearer {{idTokenEstudiante}}
+}
+
+assert {
+  res.status: eq 403
+}

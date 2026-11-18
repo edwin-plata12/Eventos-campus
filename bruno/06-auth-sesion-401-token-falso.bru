@@ -1,0 +1,19 @@
+meta {
+  name: Auth sesion - 401 token falso
+  type: http
+  seq: 6
+}
+
+post {
+  url: {{baseUrl}}/api/auth/sesion
+  body: json
+  auth: none
+}
+
+body:json {
+  { "idToken": "token-falso-123456" }
+}
+
+assert {
+  res.status: eq 401
+}

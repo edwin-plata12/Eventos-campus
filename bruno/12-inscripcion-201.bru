@@ -1,0 +1,19 @@
+meta {
+  name: Inscripcion - 201
+  type: http
+  seq: 12
+}
+
+post {
+  url: {{baseUrl}}/api/eventos/{{nuevoSlug}}/inscripcion
+  body: none
+  auth: none
+}
+
+headers {
+  Authorization: Bearer {{idTokenEstudiante}}
+}
+
+assert {
+  res.status: eq 201
+}

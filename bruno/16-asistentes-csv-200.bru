@@ -1,0 +1,19 @@
+meta {
+  name: Asistentes csv - 200
+  type: http
+  seq: 16
+}
+
+get {
+  url: {{baseUrl}}/api/eventos/{{nuevoSlug}}/asistentes.csv
+  body: none
+  auth: none
+}
+
+headers {
+  Authorization: Bearer {{idToken}}
+}
+
+assert {
+  res.status: eq 200
+}

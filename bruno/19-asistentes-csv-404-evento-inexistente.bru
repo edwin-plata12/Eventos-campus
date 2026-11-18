@@ -1,0 +1,19 @@
+meta {
+  name: Asistentes csv - 404 evento inexistente
+  type: http
+  seq: 19
+}
+
+get {
+  url: {{baseUrl}}/api/eventos/no-existe-123/asistentes.csv
+  body: none
+  auth: none
+}
+
+headers {
+  Authorization: Bearer {{idToken}}
+}
+
+assert {
+  res.status: eq 404
+}

@@ -1,0 +1,249 @@
+openapi: 3.0.3
+info:
+  title: API de Eventos del campus
+  version: 1.0.0
+  description: |
+    API REST del proyecto. La identidad sale siempre de la sesión verificada en el servidor.
+    Se autentica con la cookie `sesion` (navegador) o con `Authorization: Bearer <idToken>` (Bruno/Postman).
+    Las operaciones que cambian datos validan además que el encabezado `Origin`, si viene, coincida con el del servidor.
+    Todos los errores usan el formato `{ error, detalles? }`.
+servers:
+  - url: http://localhost:3000
+    description: Desarrollo local
+  - url: https://TU-PROYECTO.vercel.app
+    description: Producción (reemplaza por tu dirección)
+tags:
+  - name: auth
+  - name: eventos
+  - name: inscripciones
+paths:
+  /api/auth/sesion:
+    post:
+      tags: [auth]
+      summary: Crear la cookie de sesión a partir de un idToken de Firebase
+      description: El token debe haberse emitido hace menos de 5 minutos. La cookie dura 5 días y es HttpOnly.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/SesionEntrada" }
+      responses:
+        "204":
+          description: Sesión creada. La cookie `sesion` llega en Set-Cookie.
+          headers:
+            Set-Cookie:
+              schema: { type: string }
+        "400": { $ref: "#/components/responses/DatosInvalidos" }
+        "401": { $ref: "#/components/responses/NoAutenticado" }
+        "403": { $ref: "#/components/responses/Prohibido" }
+        "500": { $ref: "#/components/responses/ErrorInterno" }
+    delete:
+      tags: [auth]
+      summary: Cerrar sesión (borra la cookie)
+      responses:
+        "204": { description: Sesión cerrada }
+        "403": { $ref: "#/components/responses/Prohibido" }
+  /api/auth/yo:
+    get:
+      tags: [auth]
+      summary: Datos del usuario con sesión activa
+      security: [{ bearerAuth: [] }, { cookieAuth: [] }]
+      responses:
+        "200":
+          description: Usuario autenticado.
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [usuario]
+                properties:
+                  usuario: { $ref: "#/components/schemas/Usuario" }
+        "401": { $ref: "#/components/responses/NoAutenticado" }
+  /api/eventos:
+    get:
+      tags: [eventos]
+      summary: Listar eventos próximos y publicados
+      parameters:
+        - name: categoria
+          in: query
+          required: false
+          schema: { type: string, example: Cultural }
+      responses:
+        "200":
+          description: Hasta 50 eventos ordenados por fecha de inicio.
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [items, siguienteCursor]
+                properties:
+                  items:
+                    type: array
+                    items: { $ref: "#/components/schemas/Evento" }
+                  siguienteCursor: { type: string, nullable: true }
+        "500": { $ref: "#/components/responses/ErrorInterno" }
+    post:
+      tags: [eventos]
+      summary: Publicar un evento (solo rol organizador)
+      security: [{ bearerAuth: [] }, { cookieAuth: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/EventoEntrada" }
+      responses:
+        "201":
+          description: Evento creado.
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [slug]
+                properties:
+                  slug: { type: string, example: torneo-de-ajedrez-k3x9a }
+        "400": { $ref: "#/components/responses/DatosInvalidos" }
+        "401": { $ref: "#/components/responses/NoAutenticado" }
+        "403": { $ref: "#/components/responses/Prohibido" }
+        "500": { $ref: "#/components/responses/ErrorInterno" }
+  /api/eventos/{slug}/inscripcion:
+    parameters:
+      - $ref: "#/components/parameters/Slug"
+    post:
+      tags: [inscripciones]
+      summary: Inscribirse a un evento
+      description: Confirma si hay cupo y, si no, deja en lista de espera. Se resuelve en una transacción.
+      security: [{ bearerAuth: [] }, { cookieAuth: [] }]
+      responses:
+        "201":
+          description: Inscripción registrada.
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [estado]
+                properties:
+                  estado: { type: string, enum: [confirmada, espera] }
+        "401": { $ref: "#/components/responses/NoAutenticado" }
+        "403": { $ref: "#/components/responses/Prohibido" }
+        "404": { $ref: "#/components/responses/NoEncontrado" }
+        "409": { $ref: "#/components/responses/Conflicto" }
+        "500": { $ref: "#/components/responses/ErrorInterno" }
+    delete:
+      tags: [inscripciones]
+      summary: Cancelar la inscripción propia
+      description: Si estaba confirmada, el primero de la lista de espera pasa a confirmado.
+      security: [{ bearerAuth: [] }, { cookieAuth: [] }]
+      responses:
+        "204": { description: Inscripción cancelada }
+        "401": { $ref: "#/components/responses/NoAutenticado" }
+        "403": { $ref: "#/components/responses/Prohibido" }
+        "404": { $ref: "#/components/responses/NoEncontrado" }
+        "500": { $ref: "#/components/responses/ErrorInterno" }
+  /api/eventos/{slug}/asistentes.csv:
+    parameters:
+      - $ref: "#/components/parameters/Slug"
+    get:
+      tags: [eventos]
+      summary: Exportar asistentes en CSV (solo el organizador del evento)
+      security: [{ bearerAuth: [] }, { cookieAuth: [] }]
+      responses:
+        "200":
+          description: Archivo CSV con las columnas correo, estado e inscrito_en.
+          content:
+            text/csv:
+              schema: { type: string }
+        "401": { $ref: "#/components/responses/NoAutenticado" }
+        "403": { $ref: "#/components/responses/Prohibido" }
+        "404": { $ref: "#/components/responses/NoEncontrado" }
+        "500": { $ref: "#/components/responses/ErrorInterno" }
+components:
+  securitySchemes:
+    bearerAuth: { type: http, scheme: bearer, bearerFormat: Firebase ID token }
+    cookieAuth: { type: apiKey, in: cookie, name: sesion }
+  parameters:
+    Slug:
+      name: slug
+      in: path
+      required: true
+      schema: { type: string, example: feria-de-emprendedores }
+  responses:
+    DatosInvalidos:
+      description: Datos inválidos. `detalles` lista el campo y el motivo.
+      content:
+        application/json:
+          schema: { $ref: "#/components/schemas/Error" }
+    NoAutenticado:
+      description: Falta la sesión o el token no es válido.
+      content:
+        application/json:
+          schema: { $ref: "#/components/schemas/Error" }
+    Prohibido:
+      description: Sin permiso (rol insuficiente, no es el organizador u origen no permitido).
+      content:
+        application/json:
+          schema: { $ref: "#/components/schemas/Error" }
+    NoEncontrado:
+      description: El evento o la inscripción no existen.
+      content:
+        application/json:
+          schema: { $ref: "#/components/schemas/Error" }
+    Conflicto:
+      description: Ya estás inscrito o el evento ya pasó.
+      content:
+        application/json:
+          schema: { $ref: "#/components/schemas/Error" }
+    ErrorInterno:
+      description: Error inesperado del servidor.
+      content:
+        application/json:
+          schema: { $ref: "#/components/schemas/Error" }
+  schemas:
+    Error:
+      type: object
+      required: [error]
+      properties:
+        error: { type: string, example: Datos inválidos }
+        detalles:
+          type: array
+          items:
+            type: object
+            required: [campo, mensaje]
+            properties:
+              campo: { type: string, example: termina }
+              mensaje: { type: string, example: El fin debe ser posterior al inicio }
+    SesionEntrada:
+      type: object
+      additionalProperties: false
+      required: [idToken]
+      properties:
+        idToken: { type: string, minLength: 10 }
+    Usuario:
+      type: object
+      required: [uid, correo, rol]
+      properties:
+        uid: { type: string }
+        correo: { type: string, format: email }
+        rol: { type: string, enum: [estudiante, organizador] }
+    EventoEntrada:
+      type: object
+      additionalProperties: false
+      required: [titulo, descripcion, lugar, inicia, termina, cupo, categoria]
+      properties:
+        titulo: { type: string, minLength: 3, maxLength: 120 }
+        descripcion: { type: string, maxLength: 2000 }
+        lugar: { type: string, minLength: 2 }
+        inicia: { type: string, format: date-time }
+        termina: { type: string, format: date-time, description: Debe ser posterior a `inicia`. }
+        cupo: { type: integer, minimum: 1, maximum: 10000 }
+        categoria: { type: string, minLength: 2, maxLength: 40 }
+        imagenUrl: { type: string, format: uri, nullable: true }
+    Evento:
+      allOf:
+        - $ref: "#/components/schemas/EventoEntrada"
+        - type: object
+          required: [slug, organizadorUid, inscritos, publicado]
+          properties:
+            slug: { type: string }
+            organizadorUid: { type: string }
+            inscritos: { type: integer, minimum: 0 }
+            publicado: { type: boolean }

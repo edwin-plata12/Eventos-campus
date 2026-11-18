@@ -1,0 +1,19 @@
+meta {
+  name: Eventos crear - 401 sin token
+  type: http
+  seq: 10
+}
+
+post {
+  url: {{baseUrl}}/api/eventos
+  body: json
+  auth: none
+}
+
+body:json {
+  { "titulo": "Torneo de ajedrez", "descripcion": "Prueba de la API", "lugar": "Biblioteca", "categoria": "Deportivo", "cupo": 3, "inicia": "2027-03-10T15:00:00.000Z", "termina": "2027-03-10T18:00:00.000Z" }
+}
+
+assert {
+  res.status: eq 401
+}

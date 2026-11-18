@@ -1,0 +1,19 @@
+meta {
+  name: Auth sesion - 400 cuerpo vacío
+  type: http
+  seq: 5
+}
+
+post {
+  url: {{baseUrl}}/api/auth/sesion
+  body: json
+  auth: none
+}
+
+body:json {
+  {}
+}
+
+assert {
+  res.status: eq 400
+}

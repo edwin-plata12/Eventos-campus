@@ -1,0 +1,23 @@
+meta {
+  name: Eventos crear - 403 no es organizador
+  type: http
+  seq: 11
+}
+
+post {
+  url: {{baseUrl}}/api/eventos
+  body: json
+  auth: none
+}
+
+headers {
+  Authorization: Bearer {{idTokenEstudiante}}
+}
+
+body:json {
+  { "titulo": "Torneo de ajedrez", "descripcion": "Prueba de la API", "lugar": "Biblioteca", "categoria": "Deportivo", "cupo": 3, "inicia": "2027-03-10T15:00:00.000Z", "termina": "2027-03-10T18:00:00.000Z" }
+}
+
+assert {
+  res.status: eq 403
+}

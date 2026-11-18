@@ -1,0 +1,19 @@
+meta {
+  name: Inscripcion - 404 evento inexistente
+  type: http
+  seq: 15
+}
+
+post {
+  url: {{baseUrl}}/api/eventos/no-existe-123/inscripcion
+  body: none
+  auth: none
+}
+
+headers {
+  Authorization: Bearer {{idTokenEstudiante}}
+}
+
+assert {
+  res.status: eq 404
+}

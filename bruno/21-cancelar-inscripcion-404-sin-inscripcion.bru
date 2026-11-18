@@ -1,0 +1,19 @@
+meta {
+  name: Cancelar inscripcion - 404 sin inscripcion
+  type: http
+  seq: 21
+}
+
+delete {
+  url: {{baseUrl}}/api/eventos/{{nuevoSlug}}/inscripcion
+  body: none
+  auth: none
+}
+
+headers {
+  Authorization: Bearer {{idTokenEstudiante}}
+}
+
+assert {
+  res.status: eq 404
+}

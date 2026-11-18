@@ -1,0 +1,23 @@
+meta {
+  name: Login estudiante
+  type: http
+  seq: 2
+}
+
+post {
+  url: https://identitytoolkit.googleapis.com/v1/accounts:signInWithPassword?key={{apiKey}}
+  body: json
+  auth: none
+}
+
+body:json {
+  { "email": "{{emailEstudiante}}", "password": "{{passwordEstudiante}}", "returnSecureToken": true }
+}
+
+assert {
+  res.status: eq 200
+}
+
+script:post-response {
+  bru.setVar("idTokenEstudiante", res.body.idToken);
+}
